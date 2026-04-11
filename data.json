@@ -1,0 +1,24 @@
+{
+  "lastUpdated": "2025-01-01T00:00:00",
+  "fx": {
+    "USDMEP": 1280,
+    "USDBlue": 1310,
+    "USDOficial": 1095,
+    "EURUSD": 1.08
+  },
+  "accounts": [
+    {
+      "id": "a1",
+      "name": "Galicia AR",
+      "type": "Banco",
+      "country": "Argentina",
+      "currency": "ARS",
+      "fxType": "MEP",
+      "balance": 0
+    }
+  ],
+  "transactions": [],
+  "investments": [],
+  "monthly": [],
+  "wealth_evolution": []
+}

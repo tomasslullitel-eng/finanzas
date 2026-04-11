@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Patrimonio Personal</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&family=Crimson+Pro:wght@300;400;600&family=JetBrains+Mono:wght@400;500&display=swap');
+:root{--bg:#07090f;--surface:#0c1322;--border:#162035;--border2:#1e3352;--text:#dde4f0;--muted:#64748b;--dim:#2d4060;--gold:#f59e0b;--blue:#3b82f6;--green:#10b981;--red:#ef4444;--purple:#8b5cf6;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;display:flex;min-height:100vh;}
+::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* SIDEBAR */
+aside{width:200px;padding:20px 8px;border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;flex-shrink:0;overflow:auto;}
+.logo{padding:0 8px 24px;font-family:'Crimson Pro',serif;font-size:21px;font-weight:600;color:var(--gold);}
+.logo span{display:block;font-size:9px;color:var(--border2);letter-spacing:3px;font-family:'JetBrains Mono',monospace;margin-top:2px;}
+.nav-item{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:9px;cursor:pointer;color:var(--muted);font-size:12px;font-weight:500;transition:all .15s;user-select:none;}
+.nav-item:hover{background:var(--surface);color:#7a8fa8;}
+.nav-item.active{background:var(--border);color:var(--gold);}
+.nav-icon{font-size:14px;width:16px;text-align:center;flex-shrink:0;}
+.sidebar-fx{padding:14px 8px;border-top:1px solid var(--border);margin-top:auto;}
+.fx-label{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;}
+.fx-row{display:flex;justify-content:space-between;margin-bottom:5px;}
+.fx-key{font-size:10px;color:var(--muted);}
+.fx-val{font-size:10px;font-family:'JetBrains Mono',monospace;}
+.net-worth-mini{margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
+.net-worth-mini .label{font-size:9px;color:var(--dim);}
+.net-worth-mini .val{font-size:13px;font-family:'JetBrains Mono',monospace;color:var(--gold);font-weight:600;margin-top:2px;}
+
+/* MAIN */
+main{flex:1;padding:28px 30px;overflow:auto;min-width:0;}
+.page{display:none;}.page.active{display:block;}
+h1{font-family:'Crimson Pro',serif;font-size:38px;font-weight:300;letter-spacing:-1.5px;color:#f1f5f9;line-height:1;}
+h1 .accent{color:var(--gold);}
+.subtitle{color:var(--dim);font-size:12px;margin-top:6px;}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;}
+.card-sm{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:15px;}
+.sec{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;font-weight:500;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+.mono{font-family:'JetBrains Mono',monospace;}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,var(--surface) 0%,#0e1930 100%);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:14px;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;top:-50px;right:-50px;width:250px;height:250px;border-radius:50%;background:radial-gradient(circle,rgba(245,158,11,.04) 0%,transparent 70%);}
+.hero-total{font-family:'Crimson Pro',serif;font-size:52px;font-weight:600;color:var(--gold);letter-spacing:-3px;line-height:1;margin:10px 0 6px;}
+.hero-sub{font-size:12px;color:var(--green);}
+.hero-cols{display:flex;gap:28px;flex-wrap:wrap;}
+.hero-col label{font-size:10px;color:var(--dim);display:block;margin-bottom:3px;}
+.hero-col .val{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;}
+
+/* COUNTRY CARDS */
+.country-card{border-radius:11px;padding:14px;background:var(--surface);border:1px solid var(--border);}
+.country-card.ar{border-left:3px solid var(--gold);}
+.country-card.es{border-left:3px solid var(--blue);}
+.country-card.us{border-left:3px solid var(--green);}
+.country-name{font-size:12px;color:var(--muted);}
+.country-val{font-family:'JetBrains Mono',monospace;font-size:19px;font-weight:600;margin-top:5px;}
+.country-pct{font-size:10px;color:var(--dim);margin-top:2px;}
+
+/* CHARTS */
+.chart-wrap{position:relative;height:220px;margin-top:16px;}
+.chart-wrap-sm{position:relative;height:180px;margin-top:12px;}
+
+/* TABLES */
+table{width:100%;border-collapse:collapse;}
+th{padding:10px 14px;text-align:left;font-size:9px;color:var(--dim);font-weight:500;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border);}
+td{padding:10px 14px;border-bottom:1px solid var(--bg);font-size:12px;}
+tr:hover td{background:#0f1a2e;}
+.tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:9px;font-weight:700;font-family:'JetBrains Mono',monospace;}
+.tag-i{background:#052e16;color:#34d399;}
+.tag-g{background:#450a0a;color:#f87171;}
+.tag-v{background:#1e1b4b;color:#a78bfa;}
+.tag-t{background:#172554;color:#60a5fa;}
+
+/* STAT CARDS */
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:14px;}
+.stat-label{font-size:10px;color:var(--dim);}
+.stat-val{font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:600;margin-top:4px;}
+
+/* PL BADGE */
+.pl-pos{color:var(--green);}
+.pl-neg{color:var(--red);}
+
+/* LOADING / ERROR */
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;gap:16px;}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.error-box{background:#120800;border:1px solid #3a1a00;border-radius:12px;padding:20px 24px;color:#f97316;font-size:13px;line-height:1.8;}
+
+/* REFRESH BTN */
+.refresh-btn{display:flex;align-items:center;gap:7px;background:transparent;border:1px solid var(--border);border-radius:8px;padding:8px 16px;color:var(--muted);font-family:'Sora',sans-serif;font-size:12px;cursor:pointer;transition:all .15s;margin-left:auto;}
+.refresh-btn:hover{border-color:var(--gold);color:var(--gold);}
+.last-update{font-size:10px;color:var(--dim);margin-top:4px;text-align:right;}
+
+/* PROGRESS BAR */
+.prog-wrap{height:4px;background:var(--border);border-radius:2px;margin-top:5px;}
+.prog-fill{height:100%;border-radius:2px;}
+
+/* FX PAGE */
+.fx-input-group{display:flex;gap:8px;align-items:center;}
+.fx-input-group span{font-size:12px;color:var(--dim);white-space:nowrap;}
+.fx-input-group input{background:var(--bg);border:1px solid var(--border2);border-radius:8px;color:var(--text);padding:8px 12px;font-family:'Sora',sans-serif;font-size:13px;outline:none;flex:1;}
+.fx-input-group input:focus{border-color:var(--gold);}
+.brecha-box{background:var(--bg);border-radius:10px;padding:14px;margin-top:14px;}
+
+/* TOOLTIP for charts */
+.chartjs-tooltip{background:var(--surface)!important;border:1px solid var(--border)!important;border-radius:8px!important;color:var(--text)!important;font-family:'Sora',sans-serif!important;font-size:11px!important;}
+</style>
+</head>
+<body>
+
+<aside>
+  <div class="logo">Patrimonio<span>AR · ES · US</span></div>
+  <div class="nav-item active" data-page="dashboard"><span class="nav-icon">◈</span>Dashboard</div>
+  <div class="nav-item" data-page="movimientos"><span class="nav-icon">≡</span>Movimientos</div>
+  <div class="nav-item" data-page="inversiones"><span class="nav-icon">◉</span>Inversiones</div>
+  <div class="nav-item" data-page="ingresos"><span class="nav-icon">↑</span>Ingresos</div>
+  <div class="nav-item" data-page="gastos"><span class="nav-icon">↓</span>Gastos</div>
+  <div class="nav-item" data-page="divisas"><span class="nav-icon">⟳</span>Divisas</div>
+
+  <div class="sidebar-fx">
+    <div class="fx-label">FX</div>
+    <div class="fx-row"><span class="fx-key">MEP</span><span class="fx-val" id="sb-mep" style="color:var(--gold)">—</span></div>
+    <div class="fx-row"><span class="fx-key">Blue</span><span class="fx-val" id="sb-blue" style="color:var(--red)">—</span></div>
+    <div class="fx-row"><span class="fx-key">EUR</span><span class="fx-val" id="sb-eur" style="color:var(--blue)">—</span></div>
+    <div class="net-worth-mini">
+      <div class="label">Patrimonio total</div>
+      <div class="val" id="sb-total">—</div>
+    </div>
+  </div>
+</aside>
+
+<main>
+  <!-- DASHBOARD -->
+  <div class="page active" id="page-dashboard">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+      <div><h1>Patrimonio <span class="accent">neto</span></h1><div class="subtitle" id="dash-subtitle">Cargando datos...</div></div>
+      <div style="text-align:right;">
+        <button class="refresh-btn" onclick="loadData()">⟳ Actualizar</button>
+        <div class="last-update" id="last-update"></div>
+      </div>
+    </div>
+
+    <div id="dash-loading" class="loading"><div class="spinner"></div><div style="color:var(--muted);font-size:13px;">Conectando con data.json...</div></div>
+    <div id="dash-error" class="error-box" style="display:none"></div>
+    <div id="dash-content" style="display:none">
+      <!-- HERO -->
+      <div class="hero" style="margin-bottom:14px;">
+        <div class="sec">PATRIMONIO NETO TOTAL (USD)</div>
+        <div class="hero-total" id="hero-total">$0</div>
+        <div class="hero-sub" id="hero-sub"></div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px;margin-top:16px;">
+          <div class="hero-cols" id="hero-cols"></div>
+        </div>
+      </div>
+
+      <!-- COUNTRY CARDS -->
+      <div class="g3" style="margin-bottom:14px;" id="country-cards"></div>
+
+      <!-- EVOLUTION + COUNTRY PIE -->
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:14px;">
+        <div class="card">
+          <div class="sec">Evolución del Patrimonio</div>
+          <div class="chart-wrap"><canvas id="chart-evolution"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="sec" style="margin-bottom:8px;">Por País</div>
+          <div class="chart-wrap-sm"><canvas id="chart-country-pie"></canvas></div>
+          <div id="country-legend" style="margin-top:12px;display:flex;flex-direction:column;gap:6px;"></div>
+        </div>
+      </div>
+
+      <!-- INCOME VS EXPENSES + CATEGORIES -->
+      <div class="g2" style="margin-bottom:14px;">
+        <div class="card">
+          <div class="sec">Ingresos vs Gastos (mensual)</div>
+          <div class="chart-wrap"><canvas id="chart-monthly"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="sec" style="margin-bottom:8px;">Gastos por Categoría</div>
+          <div class="chart-wrap-sm"><canvas id="chart-categories"></canvas></div>
+          <div id="cat-legend" style="margin-top:10px;display:flex;flex-direction:column;gap:5px;"></div>
+        </div>
+      </div>
+
+      <!-- INCOME TYPE + INVESTMENT RETURNS -->
+      <div class="g2">
+        <div class="card">
+          <div class="sec" style="margin-bottom:14px;">Ingresos por Tipo</div>
+          <div id="income-breakdown"></div>
+        </div>
+        <div class="card">
+          <div class="sec" style="margin-bottom:14px;">Rendimiento Inversiones</div>
+          <div id="inv-returns"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOVIMIENTOS -->
+  <div class="page" id="page-movimientos">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+      <div><h1>Movi<span class="accent">mientos</span></h1><div class="subtitle" id="txn-count"></div></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <select id="filter-acc" onchange="renderTxns()" style="background:var(--bg);border:1px solid var(--border2);border-radius:8px;color:var(--text);padding:8px 12px;font-size:12px;outline:none;font-family:'Sora',sans-serif;"></select>
+        <select id="filter-mo" onchange="renderTxns()" style="background:var(--bg);border:1px solid var(--border2);border-radius:8px;color:var(--text);padding:8px 12px;font-size:12px;outline:none;font-family:'Sora',sans-serif;"></select>
+        <select id="filter-type" onchange="renderTxns()" style="background:var(--bg);border:1px solid var(--border2);border-radius:8px;color:var(--text);padding:8px 12px;font-size:12px;outline:none;font-family:'Sora',sans-serif;">
+          <option value="">Todos</option><option value="Ingreso">Ingresos</option><option value="Gasto">Gastos</option><option value="Inversión">Inversiones</option><option value="Transferencia">Transferencias</option>
+        </select>
+      </div>
+    </div>
+    <div class="g4" style="margin-bottom:14px;" id="txn-stats"></div>
+    <div class="card" style="padding:0;overflow:hidden;"><div style="overflow-x:auto;"><table><thead><tr><th>Fecha</th><th>Descripción</th><th>Cuenta</th><th>Categoría</th><th>Monto</th><th>USD</th></tr></thead><tbody id="txn-tbody"></tbody></table></div></div>
+  </div>
+
+  <!-- INVERSIONES -->
+  <div class="page" id="page-inversiones">
+    <div style="margin-bottom:24px;"><h1>Inver<span class="accent">siones</span></h1><div class="subtitle">Portafolio consolidado en USD</div></div>
+    <div class="g4" style="margin-bottom:14px;" id="inv-stats"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+      <div class="card">
+        <div class="sec" style="margin-bottom:8px;">Distribución</div>
+        <div class="chart-wrap-sm"><canvas id="chart-inv-type"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="sec" style="margin-bottom:14px;">Vencimientos Próximos</div>
+        <div id="maturities"></div>
+      </div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;"><div style="overflow-x:auto;"><table><thead><tr><th>Activo</th><th>Tipo</th><th>País</th><th>Cantidad</th><th>P.Compra</th><th>P.Actual</th><th>Valor USD</th><th>P&amp;L</th></tr></thead><tbody id="inv-tbody"></tbody></table></div></div>
+  </div>
+
+  <!-- INGRESOS -->
+  <div class="page" id="page-ingresos">
+    <div style="margin-bottom:24px;"><h1>Ingre<span class="accent">sos</span></h1><div class="subtitle">Todos los ingresos registrados</div></div>
+    <div class="g4" style="margin-bottom:14px;" id="inc-stats"></div>
+    <div style="display:grid;grid-template-columns:3fr 2fr;gap:14px;margin-bottom:14px;">
+      <div class="card">
+        <div class="sec">Evolución Ingresos (mensual)</div>
+        <div class="chart-wrap"><canvas id="chart-income-evo"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="sec" style="margin-bottom:8px;">Por Tipo</div>
+        <div class="chart-wrap-sm"><canvas id="chart-income-type"></canvas></div>
+      </div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;"><div style="overflow-x:auto;"><table><thead><tr><th>Fecha</th><th>Descripción</th><th>Cuenta</th><th>Categoría</th><th>Monto</th><th>USD</th></tr></thead><tbody id="inc-tbody"></tbody></table></div></div>
+  </div>
+
+  <!-- GASTOS -->
+  <div class="page" id="page-gastos">
+    <div style="margin-bottom:24px;"><h1>Gas<span class="accent">tos</span></h1><div class="subtitle">Análisis de egresos</div></div>
+    <div class="g4" style="margin-bottom:14px;" id="exp-stats"></div>
+    <div style="display:grid;grid-template-columns:3fr 2fr;gap:14px;margin-bottom:14px;">
+      <div class="card">
+        <div class="sec">Evolución Gastos (mensual)</div>
+        <div class="chart-wrap"><canvas id="chart-exp-evo"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="sec" style="margin-bottom:8px;">Por Categoría</div>
+        <div class="chart-wrap-sm"><canvas id="chart-exp-cat"></canvas></div>
+      </div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;"><div style="overflow-x:auto;"><table><thead><tr><th>Fecha</th><th>Descripción</th><th>Cuenta</th><th>Categoría</th><th>Monto</th><th>USD</th></tr></thead><tbody id="exp-tbody"></tbody></table></div></div>
+  </div>
+
+  <!-- DIVISAS -->
+  <div class="page" id="page-divisas">
+    <div style="margin-bottom:24px;"><h1>Divi<span class="accent">sas</span></h1><div class="subtitle">Tipos de cambio para conversión a USD</div></div>
+    <div class="g2">
+      <div class="card">
+        <div class="sec" style="margin-bottom:18px;">🇦🇷 Argentina — ARS/USD</div>
+        <div id="fx-ar-inputs"></div>
+        <div class="brecha-box">
+          <div style="font-size:10px;color:var(--dim);margin-bottom:10px;">Brecha cambiaria</div>
+          <div style="display:flex;gap:24px;">
+            <div><div style="font-size:10px;color:var(--muted);">MEP vs Oficial</div><div class="mono" style="font-size:22px;color:var(--gold);font-weight:600;" id="brecha-mep">—</div></div>
+            <div><div style="font-size:10px;color:var(--muted);">Blue vs Oficial</div><div class="mono" style="font-size:22px;color:var(--red);font-weight:600;" id="brecha-blue">—</div></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:14px;">
+          <div class="sec" style="margin-bottom:14px;">🇪🇺 EUR/USD</div>
+          <div id="fx-eur-input"></div>
+        </div>
+        <div class="card" id="fx-impact-card"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let D = null; // loaded data
+const charts = {};
+
+const COUNTRY_COLORS = { Argentina:'#f59e0b', España:'#3b82f6', EEUU:'#10b981', Otro:'#8b5cf6' };
+const PIE_COLORS = ['#f59e0b','#3b82f6','#10b981','#8b5cf6','#ec4899','#ef4444','#14b8a6','#f97316'];
+const flag = c => ({Argentina:'🇦🇷',España:'🇪🇸',EEUU:'🇺🇸'}[c]||'🌐');
+
+const fmt  = n => new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(n||0);
+const fmtN = (n,c) => `${new Intl.NumberFormat('es-AR',{maximumFractionDigits:0}).format(Math.round(n||0))} ${c||''}`;
+const fmtP = n => `${n>0?'+':''}${(n||0).toFixed(1)}%`;
+
+// ─── LOAD DATA ────────────────────────────────────────────────────────────────
+const DRIVE_FILE_ID = 'TU_ID_ACA'; // reemplazá con el ID de data.json en Drive
+
+async function loadData() {
+  try {
+    // Si tenés Drive ID configurado, lee desde Drive. Si no, desde local.
+    let url;
+    if (DRIVE_FILE_ID && DRIVE_FILE_ID !== 'TU_ID_ACA') {
+      url = `https://drive.google.com/uc?export=download&id=${DRIVE_FILE_ID}&t=${Date.now()}`;
+    } else {
+      url = 'data.json?t=' + Date.now();
+    }
+    const r = await fetch(url);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    D = await r.json();
+    renderAll();
+    document.getElementById('last-update').textContent = 'Actualizado: ' + new Date().toLocaleTimeString('es-AR');
+  } catch(e) {
+    document.getElementById('dash-loading').style.display = 'none';
+    document.getElementById('dash-error').style.display = 'block';
+    document.getElementById('dash-error').innerHTML = `
+      <strong>No se pudo cargar data.json</strong><br><br>
+      Asegurate de que:<br>
+      1. Cowork procesó tus archivos y creó <code>data.json</code> en la carpeta /Finanzas<br>
+      2. El servidor local está corriendo: <code>cd /ruta/Finanzas && python3 -m http.server 8080</code><br>
+      3. Estás en <code>http://localhost:8080/dashboard.html</code> (no abriste el HTML directo)<br><br>
+      Error: ${e.message}
+    `;
+  }
+}
+
+function toUSD(amount, currency, fxType) {
+  if (!amount || !D) return 0;
+  const fx = D.fx || {};
+  if (currency === 'USD') return amount;
+  if (currency === 'EUR') return amount * (fx.EURUSD || 1.08);
+  if (currency === 'ARS') {
+    const rate = fxType === 'MEP' ? fx.USDMEP : fxType === 'Blue' ? fx.USDBlue : fx.USDOficial;
+    return amount / (rate || 1280);
+  }
+  return amount;
+}
+
+// ─── RENDER ALL ───────────────────────────────────────────────────────────────
+function renderAll() {
+  if (!D) return;
+  document.getElementById('dash-loading').style.display = 'none';
+  document.getElementById('dash-error').style.display = 'none';
+  document.getElementById('dash-content').style.display = 'block';
+
+  renderSidebar();
+  renderDashboard();
+  renderTxns();
+  renderInvestments();
+  renderIncome();
+  renderExpenses();
+  renderFX();
+}
+
+// ─── SIDEBAR ──────────────────────────────────────────────────────────────────
+function renderSidebar() {
+  const fx = D.fx || {};
+  const accounts = D.accounts || [];
+  const invs = D.investments || [];
+
+  const liq = accounts.reduce((s,a) => s + toUSD(a.balance, a.currency, a.fxType), 0);
+  const port = invs.reduce((s,i) => s + invVal(i), 0);
+
+  document.getElementById('sb-mep').textContent = (fx.USDMEP || 0).toLocaleString('es-AR');
+  document.getElementById('sb-blue').textContent = (fx.USDBlue || 0).toLocaleString('es-AR');
+  document.getElementById('sb-eur').textContent = (fx.EURUSD || 0).toFixed(3);
+  document.getElementById('sb-total').textContent = fmt(liq + port);
+}
+
+// ─── DASHBOARD ────────────────────────────────────────────────────────────────
+function invVal(inv) {
+  if (!inv) return 0;
+  const val = (inv.currentPrice || 0) * (inv.type === 'Plazo Fijo' ? 1 : (inv.quantity || 0));
+  return toUSD(val, inv.currency, inv.country === 'Argentina' ? 'MEP' : 'N/A');
+}
+function invCost(inv) {
+  if (!inv) return 0;
+  const cost = (inv.buyPrice || 0) * (inv.type === 'Plazo Fijo' ? 1 : (inv.quantity || 0));
+  return toUSD(cost, inv.currency, inv.country === 'Argentina' ? 'MEP' : 'N/A');
+}
+
+function renderDashboard() {
+  const accounts = D.accounts || [];
+  const txns = (D.transactions || []).filter(t => !t.isInternal);
+  const invs = D.investments || [];
+  const monthly = D.monthly || [];
+
+  const liq = accounts.reduce((s,a) => s + toUSD(a.balance, a.currency, a.fxType), 0);
+  const port = invs.reduce((s,i) => s + invVal(i), 0);
+  const net = liq + port;
+  const lastMo = monthly[monthly.length - 1] || {};
+  const ahorro = (lastMo.ingresos || 0) - (lastMo.gastos || 0);
+
+  document.getElementById('dash-subtitle').textContent = `${accounts.length} cuentas · ${txns.length} movimientos · ${invs.length} posiciones`;
+  document.getElementById('hero-total').textContent = fmt(net);
+  document.getElementById('hero-sub').textContent = ahorro >= 0 ? `▲ Ahorro del mes: ${fmt(ahorro)}` : `▼ Déficit del mes: ${fmt(Math.abs(ahorro))}`;
+
+  document.getElementById('hero-cols').innerHTML = [
+    ['Liquidez', liq, '#3b82f6'],
+    ['Inversiones', port, '#8b5cf6'],
+    ['Ingresos (mes)', lastMo.ingresos || 0, '#10b981'],
+    ['Gastos (mes)', lastMo.gastos || 0, '#ef4444'],
+  ].map(([l,v,c]) => `<div class="hero-col"><label>${l}</label><div class="val" style="color:${c}">${fmt(v)}</div></div>`).join('');
+
+  // country cards
+  const countryData = ['Argentina','España','EEUU'].map(name => ({
+    name,
+    val: accounts.filter(a=>a.country===name).reduce((s,a)=>s+toUSD(a.balance,a.currency,a.fxType),0)
+        + invs.filter(i=>i.country===name).reduce((s,i)=>s+invVal(i),0)
+  })).filter(d => d.val > 0);
+
+  document.getElementById('country-cards').innerHTML = countryData.map(d => `
+    <div class="country-card ${d.name==='Argentina'?'ar':d.name==='España'?'es':'us'}">
+      <div class="country-name">${flag(d.name)} ${d.name}</div>
+      <div class="country-val" style="color:${COUNTRY_COLORS[d.name]}">${fmt(d.val)}</div>
+      <div class="country-pct">${net>0?((d.val/net)*100).toFixed(0):0}% del total</div>
+    </div>`).join('');
+
+  // evolution chart
+  const evo = D.wealth_evolution || monthly.map((m,i) => ({ month: m.month, patrimonio: Math.round(net*(0.84+i*0.032)), liquidez: Math.round(liq*(0.87+i*0.026)) }));
+  mkChart('chart-evolution', 'line', evo.map(e=>e.month), [
+    { label:'Patrimonio', data:evo.map(e=>e.patrimonio||0), borderColor:'#f59e0b', backgroundColor:'rgba(245,158,11,.15)', fill:true, tension:.4 },
+    { label:'Liquidez',   data:evo.map(e=>e.liquidez||0),   borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,.1)',  fill:true, tension:.4 },
+  ]);
+
+  // country pie
+  mkChart('chart-country-pie', 'doughnut', countryData.map(d=>d.name), [{
+    data: countryData.map(d=>Math.round(d.val)),
+    backgroundColor: countryData.map(d=>COUNTRY_COLORS[d.name]),
+    borderWidth:0, hoverOffset:4
+  }]);
+  document.getElementById('country-legend').innerHTML = countryData.map(d=>`
+    <div style="display:flex;justify-content:space-between;font-size:11px;">
+      <span style="display:flex;align-items:center;gap:6px;"><span style="width:7px;height:7px;border-radius:50%;background:${COUNTRY_COLORS[d.name]};display:inline-block;"></span><span style="color:#7a8fa8;">${d.name}</span></span>
+      <span class="mono" style="color:var(--muted);">${fmt(d.val)}</span>
+    </div>`).join('');
+
+  // monthly bar
+  mkChart('chart-monthly', 'bar', monthly.map(m=>m.month), [
+    { label:'Ingresos', data:monthly.map(m=>Math.round(m.ingresos||0)), backgroundColor:'#10b981', borderRadius:4 },
+    { label:'Gastos',   data:monthly.map(m=>Math.round(m.gastos||0)),   backgroundColor:'#ef4444', borderRadius:4 },
+    { label:'Ahorro',   data:monthly.map(m=>Math.round((m.ingresos||0)-(m.gastos||0))), backgroundColor:'#3b82f6', borderRadius:4 },
+  ]);
+
+  // categories pie
+  const cats = {};
+  txns.filter(t=>t.type==='Gasto').forEach(t=>{ cats[t.category]=(cats[t.category]||0)+Math.abs(t.amountUSD||0); });
+  const catArr = Object.entries(cats).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  mkChart('chart-categories', 'doughnut', catArr.map(([k])=>k), [{
+    data:catArr.map(([,v])=>Math.round(v)), backgroundColor:PIE_COLORS, borderWidth:0, hoverOffset:4
+  }]);
+  document.getElementById('cat-legend').innerHTML = catArr.map(([n,v],i)=>`
+    <div style="display:flex;justify-content:space-between;font-size:10px;">
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:6px;height:6px;border-radius:50%;background:${PIE_COLORS[i]};display:inline-block;"></span><span style="color:#7a8fa8;">${n}</span></span>
+      <span class="mono" style="color:var(--muted);">${fmt(v)}</span>
+    </div>`).join('');
+
+  // income breakdown
+  const incTypes = {};
+  txns.filter(t=>t.type==='Ingreso').forEach(t=>{ incTypes[t.category]=(incTypes[t.category]||0)+(t.amountUSD||0); });
+  const totalInc = Object.values(incTypes).reduce((s,v)=>s+v,0);
+  document.getElementById('income-breakdown').innerHTML = Object.entries(incTypes).sort((a,b)=>b[1]-a[1]).map(([n,v],i)=>`
+    <div style="margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;"><span style="color:#94a3b8;">${n}</span><span class="mono" style="color:${PIE_COLORS[i%8]}">${fmt(v)}</span></div>
+      <div class="prog-wrap"><div class="prog-fill" style="width:${totalInc>0?(v/totalInc*100).toFixed(0):0}%;background:${PIE_COLORS[i%8]};"></div></div>
+    </div>`).join('');
+
+  // investment returns
+  document.getElementById('inv-returns').innerHTML = invs.slice(0,6).map(inv=>{
+    const v=invVal(inv), c=invCost(inv), pl=c>0?((v-c)/c)*100:0;
+    return `<div style="margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;"><span style="color:#94a3b8;">${inv.ticker||inv.name}</span><span class="mono" style="color:${pl>=0?'#10b981':'#ef4444'}">${fmtP(pl)}</span></div>
+      <div class="prog-wrap"><div class="prog-fill" style="width:${Math.min(Math.abs(pl),100).toFixed(0)}%;background:${pl>=0?'#10b981':'#ef4444'};"></div></div>
+    </div>`;
+  }).join('');
+}
+
+// ─── TRANSACTIONS ─────────────────────────────────────────────────────────────
+function renderTxns() {
+  if (!D) return;
+  const accounts = D.accounts || [];
+  const accSel = document.getElementById('filter-acc');
+  const moSel  = document.getElementById('filter-mo');
+  const typeSel = document.getElementById('filter-type');
+
+  // populate filters
+  if (accSel.options.length === 0) {
+    accSel.innerHTML = '<option value="">Todas las cuentas</option>' + accounts.map(a=>`<option value="${a.id}">${a.name}</option>`).join('');
+    const months = [...new Set((D.transactions||[]).map(t=>t.date?.substring(0,7)).filter(Boolean))].sort().reverse();
+    moSel.innerHTML = '<option value="">Todos los meses</option>' + months.map(m=>`<option value="${m}">${m}</option>`).join('');
+  }
+
+  let txns = (D.transactions || []).filter(t => {
+    if (accSel.value && t.accountId !== accSel.value) return false;
+    if (moSel.value && !(t.date||'').startsWith(moSel.value)) return false;
+    if (typeSel.value && t.type !== typeSel.value) return false;
+    return true;
+  }).sort((a,b) => (b.date||'').localeCompare(a.date||''));
+
+  document.getElementById('txn-count').textContent = txns.length + ' transacciones';
+
+  const inc = txns.filter(t=>t.type==='Ingreso'&&!t.isInternal).reduce((s,t)=>s+Math.abs(t.amountUSD||0),0);
+  const exp = txns.filter(t=>t.type==='Gasto'&&!t.isInternal).reduce((s,t)=>s+Math.abs(t.amountUSD||0),0);
+  const inv = txns.filter(t=>t.type==='Inversión'&&!t.isInternal).reduce((s,t)=>s+Math.abs(t.amountUSD||0),0);
+
+  document.getElementById('txn-stats').innerHTML = [
+    ['Ingresos', inc, '#10b981'], ['Gastos', exp, '#ef4444'],
+    ['Inversiones', inv, '#8b5cf6'], ['Resultado', inc-exp, '#f59e0b']
+  ].map(([l,v,c])=>`<div class="stat-card"><div class="stat-label">${l}</div><div class="stat-val" style="color:${c}">${fmt(v)}</div></div>`).join('');
+
+  document.getElementById('txn-tbody').innerHTML = txns.map(t => {
+    const acc = accounts.find(a=>a.id===t.accountId);
+    const tag = t.type==='Ingreso'?'tag-i':t.type==='Gasto'?'tag-g':t.type==='Inversión'?'tag-v':'tag-t';
+    return `<tr>
+      <td class="mono" style="color:var(--dim);white-space:nowrap;">${t.date||''}</td>
+      <td style="color:#94a3b8;max-width:200px;">${t.descriptionClean||t.description||''}</td>
+      <td style="color:var(--muted);">${acc?.name||'—'}</td>
+      <td><span class="tag ${tag}">${t.category||t.type||''}</span></td>
+      <td class="mono" style="color:${(t.amount||0)>0?'#10b981':'#ef4444'};white-space:nowrap;">${(t.amount||0)>0?'+':''}${Math.round(t.amount||0).toLocaleString('es-AR')} ${t.currency||''}</td>
+      <td class="mono" style="color:var(--muted);">${fmt(Math.abs(t.amountUSD||0))}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ─── INVESTMENTS ──────────────────────────────────────────────────────────────
+function renderInvestments() {
+  if (!D) return;
+  const invs = D.investments || [];
+  const accounts = D.accounts || [];
+  const total = invs.reduce((s,i)=>s+invVal(i),0);
+  const byType = {};
+  invs.forEach(i=>{ byType[i.type]=(byType[i.type]||0)+invVal(i); });
+
+  document.getElementById('inv-stats').innerHTML = [
+    ['Total', fmt(total), '#f59e0b'],
+    ['Acciones/ETF', fmt(['Acción','ETF','Fondo'].reduce((s,t)=>s+(byType[t]||0),0)), '#3b82f6'],
+    ['Bonos', fmt(byType['Bono']||0), '#8b5cf6'],
+    ['PF/Otros', fmt(Object.entries(byType).filter(([t])=>!['Acción','ETF','Fondo','Bono'].includes(t)).reduce((s,[,v])=>s+v,0)), '#10b981'],
+  ].map(([l,v,c])=>`<div class="stat-card"><div class="stat-label">${l}</div><div class="stat-val" style="color:${c}">${v}</div></div>`).join('');
+
+  const typeArr = Object.entries(byType).sort((a,b)=>b[1]-a[1]);
+  mkChart('chart-inv-type','doughnut',typeArr.map(([k])=>k),[{data:typeArr.map(([,v])=>Math.round(v)),backgroundColor:PIE_COLORS,borderWidth:0,hoverOffset:4}]);
+
+  const soon = invs.filter(i=>i.maturityDate).sort((a,b)=>new Date(a.maturityDate)-new Date(b.maturityDate)).slice(0,5);
+  document.getElementById('maturities').innerHTML = soon.length ? soon.map(inv=>{
+    const days = Math.round((new Date(inv.maturityDate)-new Date())/(86400000));
+    const col = days<30?'#ef4444':days<90?'#f59e0b':'#10b981';
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
+      <div><div style="font-size:12px;font-weight:500;color:#dde4f0;">${inv.name}</div><div style="font-size:10px;color:var(--muted);">${inv.maturityDate}${inv.rate?` · TNA ${inv.rate}%`:''}</div></div>
+      <div style="text-align:right;"><div class="mono" style="color:var(--gold);font-size:13px;">${fmt(invVal(inv))}</div><div style="font-size:10px;color:${col};">${days>0?days+' días':'Vencido'}</div></div>
+    </div>`;
+  }).join('') : '<div style="color:var(--muted);font-size:12px;">Sin vencimientos registrados</div>';
+
+  document.getElementById('inv-tbody').innerHTML = invs.map(inv=>{
+    const v=invVal(inv),c=invCost(inv),pl=c>0?((v-c)/c)*100:0;
+    const acc=accounts.find(a=>a.id===inv.accountId);
+    return `<tr>
+      <td><div style="font-size:13px;font-weight:600;color:#dde4f0;">${inv.name}</div>${inv.ticker?`<div class="mono" style="font-size:9px;color:var(--dim);">${inv.ticker}</div>`:''}</td>
+      <td style="color:var(--muted);">${inv.type}</td>
+      <td>${flag(inv.country)}</td>
+      <td class="mono" style="color:var(--muted);">${(inv.quantity||0).toLocaleString('es-AR')}</td>
+      <td class="mono" style="color:var(--dim);">${inv.currency} ${(inv.buyPrice||0).toLocaleString('es-AR')}</td>
+      <td>
+        <div class="mono" style="color:#94a3b8;">${inv.currency} ${(inv.currentPrice||0).toLocaleString('es-AR')}</div>
+        ${inv.rate?`<div style="font-size:9px;color:#8b5cf6;">TNA ${inv.rate}%</div>`:''}
+        ${inv.maturityDate?`<div style="font-size:9px;color:var(--gold);">Vto: ${inv.maturityDate}</div>`:''}
+      </td>
+      <td class="mono" style="font-size:14px;font-weight:700;color:var(--gold);">${fmt(v)}</td>
+      <td class="mono" style="font-size:13px;font-weight:600;color:${pl>=0?'#10b981':'#ef4444'};">${fmtP(pl)}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ─── INCOME ───────────────────────────────────────────────────────────────────
+function renderIncome() {
+  if (!D) return;
+  const txns = (D.transactions||[]).filter(t=>t.type==='Ingreso'&&!t.isInternal);
+  const accounts = D.accounts||[];
+  const monthly = D.monthly||[];
+  const total = txns.reduce((s,t)=>s+Math.abs(t.amountUSD||0),0);
+  const totalMo = (monthly[monthly.length-1]?.ingresos)||0;
+  const avg = monthly.length ? total/monthly.length : 0;
+
+  document.getElementById('inc-stats').innerHTML = [
+    ['Total acumulado', fmt(total), '#10b981'],
+    ['Promedio mensual', fmt(avg), '#3b82f6'],
+    ['Último mes', fmt(totalMo), '#f59e0b'],
+    ['Transacciones', txns.length+'', '#8b5cf6'],
+  ].map(([l,v,c])=>`<div class="stat-card"><div class="stat-label">${l}</div><div class="stat-val" style="color:${c}">${v}</div></div>`).join('');
+
+  mkChart('chart-income-evo','bar',monthly.map(m=>m.month),[{label:'Ingresos',data:monthly.map(m=>Math.round(m.ingresos||0)),backgroundColor:'#10b981',borderRadius:4}]);
+
+  const cats = {};
+  txns.forEach(t=>{ cats[t.category]=(cats[t.category]||0)+Math.abs(t.amountUSD||0); });
+  const catArr=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+  mkChart('chart-income-type','doughnut',catArr.map(([k])=>k),[{data:catArr.map(([,v])=>Math.round(v)),backgroundColor:PIE_COLORS,borderWidth:0,hoverOffset:4}]);
+
+  document.getElementById('inc-tbody').innerHTML = txns.sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(t=>{
+    const acc=accounts.find(a=>a.id===t.accountId);
+    return `<tr>
+      <td class="mono" style="color:var(--dim);">${t.date||''}</td>
+      <td style="color:#94a3b8;">${t.descriptionClean||t.description||''}</td>
+      <td style="color:var(--muted);">${acc?.name||'—'}</td>
+      <td><span class="tag tag-i">${t.category||''}</span></td>
+      <td class="mono" style="color:#10b981;">+${Math.round(t.amount||0).toLocaleString('es-AR')} ${t.currency||''}</td>
+      <td class="mono" style="color:var(--muted);">${fmt(Math.abs(t.amountUSD||0))}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ─── EXPENSES ─────────────────────────────────────────────────────────────────
+function renderExpenses() {
+  if (!D) return;
+  const txns = (D.transactions||[]).filter(t=>t.type==='Gasto'&&!t.isInternal);
+  const accounts = D.accounts||[];
+  const monthly = D.monthly||[];
+  const total = txns.reduce((s,t)=>s+Math.abs(t.amountUSD||0),0);
+  const totalMo = (monthly[monthly.length-1]?.gastos)||0;
+  const avg = monthly.length ? total/monthly.length : 0;
+
+  document.getElementById('exp-stats').innerHTML = [
+    ['Total acumulado', fmt(total), '#ef4444'],
+    ['Promedio mensual', fmt(avg), '#f97316'],
+    ['Último mes', fmt(totalMo), '#f59e0b'],
+    ['Transacciones', txns.length+'', '#8b5cf6'],
+  ].map(([l,v,c])=>`<div class="stat-card"><div class="stat-label">${l}</div><div class="stat-val" style="color:${c}">${v}</div></div>`).join('');
+
+  mkChart('chart-exp-evo','bar',monthly.map(m=>m.month),[{label:'Gastos',data:monthly.map(m=>Math.round(m.gastos||0)),backgroundColor:'#ef4444',borderRadius:4}]);
+
+  const cats={};
+  txns.forEach(t=>{ cats[t.category]=(cats[t.category]||0)+Math.abs(t.amountUSD||0); });
+  const catArr=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+  mkChart('chart-exp-cat','doughnut',catArr.map(([k])=>k),[{data:catArr.map(([,v])=>Math.round(v)),backgroundColor:PIE_COLORS,borderWidth:0,hoverOffset:4}]);
+
+  document.getElementById('exp-tbody').innerHTML = txns.sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(t=>{
+    const acc=accounts.find(a=>a.id===t.accountId);
+    return `<tr>
+      <td class="mono" style="color:var(--dim);">${t.date||''}</td>
+      <td style="color:#94a3b8;">${t.descriptionClean||t.description||''}</td>
+      <td style="color:var(--muted);">${acc?.name||'—'}</td>
+      <td><span class="tag tag-g">${t.category||''}</span></td>
+      <td class="mono" style="color:#ef4444;">${Math.round(t.amount||0).toLocaleString('es-AR')} ${t.currency||''}</td>
+      <td class="mono" style="color:var(--muted);">${fmt(Math.abs(t.amountUSD||0))}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ─── FX PAGE ──────────────────────────────────────────────────────────────────
+function renderFX() {
+  if (!D) return;
+  const fx = D.fx || {};
+  const accounts = D.accounts||[];
+
+  document.getElementById('fx-ar-inputs').innerHTML = [
+    ['USD Oficial (BCRA)','USDOficial','#64748b'],
+    ['USD MEP (Bolsa) ★','USDMEP','#f59e0b'],
+    ['USD Blue','USDBlue','#ef4444'],
+  ].map(([l,k,c]) => `
+    <div style="margin-bottom:16px;">
+      <div style="font-size:10px;color:${c};text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">${l}</div>
+      <div class="fx-input-group"><span>1 USD =</span><input type="number" id="fx-${k}" value="${fx[k]||0}" oninput="updateFX()"><span>ARS</span></div>
+    </div>`).join('');
+
+  document.getElementById('fx-eur-input').innerHTML = `
+    <div class="fx-input-group"><span>1 EUR =</span><input type="number" id="fx-EURUSD" step="0.001" value="${fx.EURUSD||1.08}" oninput="updateFX()"><span>USD</span></div>`;
+
+  const arAccounts = accounts.filter(a=>a.country==='Argentina');
+  if (arAccounts.length > 0) {
+    document.getElementById('fx-impact-card').innerHTML = `
+      <div class="sec" style="margin-bottom:14px;">Impacto en patrimonio AR</div>
+      ${[['Oficial',fx.USDOficial||1095,'#64748b'],['MEP ★',fx.USDMEP||1280,'#f59e0b'],['Blue',fx.USDBlue||1310,'#ef4444']].map(([n,rate,c])=>{
+        const val = arAccounts.reduce((s,a)=>s+a.balance/rate,0);
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
+          <div><div style="font-size:12px;color:${c};font-weight:500;">${n}</div><div class="mono" style="font-size:10px;color:var(--dim);">@ ${rate.toLocaleString('es-AR')} ARS/USD</div></div>
+          <div class="mono" style="font-size:15px;font-weight:600;color:${c};">${fmt(val)}</div>
+        </div>`;
+      }).join('')}`;
+  }
+  updateBrecha();
+}
+
+function updateFX() {
+  if (!D) return;
+  D.fx = D.fx || {};
+  ['USDOficial','USDMEP','USDBlue','EURUSD'].forEach(k=>{
+    const el=document.getElementById('fx-'+k);
+    if(el) D.fx[k]=parseFloat(el.value)||0;
+  });
+  updateBrecha();
+  renderSidebar();
+}
+
+function updateBrecha() {
+  const fx=D?.fx||{};
+  const mep=fx.USDMEP||1280,oficial=fx.USDOficial||1095,blue=fx.USDBlue||1310;
+  document.getElementById('brecha-mep').textContent = (((mep/oficial)-1)*100).toFixed(0)+'%';
+  document.getElementById('brecha-blue').textContent = (((blue/oficial)-1)*100).toFixed(0)+'%';
+}
+
+// ─── CHART HELPER ─────────────────────────────────────────────────────────────
+function mkChart(id, type, labels, datasets) {
+  if (charts[id]) { charts[id].destroy(); }
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  const isDoughnut = type === 'doughnut';
+  charts[id] = new Chart(ctx, {
+    type,
+    data: { labels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: isDoughnut, position:'right', labels:{ color:'#64748b', font:{size:10,family:'Sora'}, boxWidth:8, padding:8 } },
+        tooltip: { backgroundColor:'#0c1322', borderColor:'#162035', borderWidth:1, titleColor:'#dde4f0', bodyColor:'#64748b', titleFont:{family:'Sora',size:11}, bodyFont:{family:'JetBrains Mono',size:11},
+          callbacks:{ label: ctx => ' '+new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(ctx.parsed.y||ctx.parsed||0) }
+        }
+      },
+      scales: isDoughnut ? {} : {
+        x: { grid:{color:'#162035'}, ticks:{color:'#2d4060',font:{size:10}} },
+        y: { grid:{color:'#162035'}, ticks:{color:'#2d4060',font:{size:10,family:'JetBrains Mono'}, callback:v=>`$${(v/1000).toFixed(0)}k`} }
+      },
+      cutout: isDoughnut ? '65%' : undefined,
+    }
+  });
+}
+
+// ─── NAV ─────────────────────────────────────────────────────────────────────
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    item.classList.add('active');
+    const pageId = 'page-' + item.dataset.page;
+    const page = document.getElementById(pageId);
+    if (page) page.classList.add('active');
+  });
+});
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+loadData();
+setInterval(loadData, 30000); // auto-refresh every 30s
+</script>
+</body>
+</html>
