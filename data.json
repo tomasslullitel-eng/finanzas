@@ -1,5 +1,15 @@
 {
-  "lastUpdated": "2025-01-01T00:00:00",
+  "lastUpdated": null,
+  "config": {
+    "email": "tomasslullitel@gmail.com",
+    "baseCurrency": "USD",
+    "countries": [
+      "Argentina",
+      "España",
+      "EEUU"
+    ],
+    "driveDataId": "1k_gW_RymMCgFNjmdMd6uwMftsPIS-AZJ"
+  },
   "fx": {
     "USDMEP": 1280,
     "USDBlue": 1310,
@@ -8,8 +18,26 @@
   },
   "accounts": [
     {
-      "id": "a1",
-      "name": "Galicia AR",
+      "id": "rosental_ar",
+      "name": "Rosental AR",
+      "type": "Broker",
+      "country": "Argentina",
+      "currency": "USD",
+      "fxType": "N/A",
+      "balance": 0
+    },
+    {
+      "id": "efectivo_es",
+      "name": "Efectivo ES - Gastón",
+      "type": "Efectivo",
+      "country": "España",
+      "currency": "EUR",
+      "fxType": "N/A",
+      "balance": 2500
+    },
+    {
+      "id": "efectivo_ar_gaston",
+      "name": "Supervielle AR - Gastón",
       "type": "Banco",
       "country": "Argentina",
       "currency": "ARS",
@@ -18,7 +46,38 @@
     }
   ],
   "transactions": [],
-  "investments": [],
+  "investments": [
+    {
+      "id": "inv_ao27_rosental",
+      "name": "Bono AO27 - Rosental",
+      "ticker": "AO27",
+      "type": "Bono",
+      "country": "Argentina",
+      "accountId": "rosental_ar",
+      "quantity": 43117,
+      "buyPrice": 0,
+      "currentPrice": 1450,
+      "currency": "ARS",
+      "maturityDate": "2027-10-29",
+      "rate": 6.0,
+      "notes": "Comprado con ingresos del campo 2025-2026. Valor al 11/04/2026: ARS 62.519.650"
+    },
+    {
+      "id": "inv_dael_es",
+      "name": "DAEL - Renta Fija España",
+      "ticker": "DAEL",
+      "type": "Fondo",
+      "country": "España",
+      "accountId": "efectivo_es",
+      "quantity": 1,
+      "buyPrice": 0,
+      "currentPrice": 5000,
+      "currency": "EUR",
+      "maturityDate": null,
+      "rate": null,
+      "notes": "Paga €5.000/año en mayo. En el Excel aparece prorrateado mensualmente (€416/mes) pero el cobro real es anual."
+    }
+  ],
   "monthly": [],
   "wealth_evolution": []
 }
