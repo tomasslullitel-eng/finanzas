@@ -310,17 +310,13 @@ const fmtN = (n,c) => `${new Intl.NumberFormat('es-AR',{maximumFractionDigits:0}
 const fmtP = n => `${n>0?'+':''}${(n||0).toFixed(1)}%`;
 
 // ─── LOAD DATA ────────────────────────────────────────────────────────────────
-const DRIVE_FILE_ID = 'TU_ID_ACA'; // reemplazá con el ID de data.json en Drive
+const GITHUB_URL = 'https://tomasslullitel-eng.github.io/finanzas/';
 
 async function loadData() {
   try {
     // Si tenés Drive ID configurado, lee desde Drive. Si no, desde local.
     let url;
-    if (DRIVE_FILE_ID && DRIVE_FILE_ID !== 'TU_ID_ACA') {
-      url = `https://drive.google.com/uc?export=download&id=${DRIVE_FILE_ID}&t=${Date.now()}`;
-    } else {
-      url = 'data.json?t=' + Date.now();
-    }
+    url = 'data.json?t=' + Date.now();
     const r = await fetch(url);
     if (!r.ok) throw new Error('HTTP ' + r.status);
     D = await r.json();
